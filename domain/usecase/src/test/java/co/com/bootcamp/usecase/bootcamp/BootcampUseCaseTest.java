@@ -7,10 +7,16 @@ import static org.mockito.Mockito.when;
 
 import co.com.bootcamp.model.bootcamp.Bootcamp;
 import co.com.bootcamp.model.bootcamp.BootcampCreate;
+import co.com.bootcamp.model.bootcamp.BootcampResponse;
+import co.com.bootcamp.model.bootcamp.BootcampSortBy;
 import co.com.bootcamp.model.exception.BusinessException;
 import co.com.bootcamp.model.gateways.BootcampRepository;
 import co.com.bootcamp.model.gateways.CapacityGateway;
 import co.com.bootcamp.model.gateways.TransactionalGateway;
+import co.com.bootcamp.model.input.BootcampRetrieveStrategy;
+import co.com.bootcamp.model.page.BootcampPageCommand;
+import co.com.bootcamp.model.page.PageResponse;
+import co.com.bootcamp.model.page.SortDirection;
 import java.util.Collections;
 import java.util.Set;
 import java.util.stream.Stream;
@@ -36,6 +42,10 @@ class BootcampUseCaseTest {
   private CapacityGateway capacityGateway;
   @Mock
   private TransactionalGateway transactionalGateway;
+  @Mock
+  private BootcampFactoryUseCase factoryUseCase;
+  @Mock
+  private BootcampRetrieveStrategy mockStrategy;
 
   private Set<String> capacities;
   private BootcampCreate createData;
@@ -107,5 +117,33 @@ class BootcampUseCaseTest {
         .verify();
     verify(repository, never()).save(any());
     verify(capacityGateway, never()).assignCapacitiesToBootcamp(any(), any());
+  }
+
+  @Test
+  void shouldFindAndExecuteStrategySuccessfully() {
+    // Arrange
+    BootcampPageCommand command = BootcampPageCommand
+        .builder()
+        .page(0)
+        .size(10)
+        .sortBy(BootcampSortBy.NAME)
+        .sortDirection(SortDirection.ASC)
+        .build();
+    PageResponse<BootcampResponse> expectedResponse = PageResponse
+        .<BootcampResponse>builder()
+        .content(Collections.emptyList())
+        .totalElements(0)
+        .build();
+    when(factoryUseCase.findStrategy(BootcampSortBy.NAME)).thenReturn(mockStrategy);
+    when(mockStrategy.getBootcampResponse(command)).thenReturn(Mono.just(expectedResponse));
+
+    // Act
+    var result = useCase.getBootcampResponses(command);
+
+    // Assert
+    StepVerifier
+        .create(result)
+        .expectNext(expectedResponse)
+        .verifyComplete();
   }
 }

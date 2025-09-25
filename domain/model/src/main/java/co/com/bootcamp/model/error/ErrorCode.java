@@ -16,6 +16,9 @@ public enum ErrorCode {
       "Error al asignar capacidades: "
   ),
   INVALID_CAPACITY("INVALID-CAPACITY", ExceptionCode.NOT_FOUND, "Error al asignar una capacidad! "),
+  INVALID_SORT_BY("INVALID-SORT-BY", ExceptionCode.INVALID_INPUT, "Parámetro sortBy no válido."),
+  INVALID_SORT_DIRECTION_BY("INVALID-SORT-DIRECTION-BY", ExceptionCode.INVALID_INPUT, "Parámetro sortDirection no válido."),
+  INVALID_PARAMETERS("INVALID-PARAMETERS", ExceptionCode.INVALID_INPUT, "Parámetros inválidos"),
   ;
 
   private final String fullErrorCode;

@@ -1,6 +1,8 @@
 package co.com.bootcamp.model.gateways;
 
+import co.com.bootcamp.model.capacity.CapacityResponse;
 import java.util.Set;
+import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 public interface CapacityGateway {
@@ -9,4 +11,5 @@ public interface CapacityGateway {
 
   Mono<Void> validateCapacities(Set<String> capacities);
 
+  Flux<CapacityResponse> getCapacitiesByIdBootcamp(String idBootcamp);
 }
