@@ -3,6 +3,11 @@ package co.com.bootcamp.api.handler;
 import co.com.bootcamp.api.mapper.BootcampRestMapper;
 import co.com.bootcamp.api.model.request.BootcampCreateRequest;
 import co.com.bootcamp.model.bootcamp.BootcampCreate;
+import co.com.bootcamp.model.bootcamp.BootcampSortBy;
+import co.com.bootcamp.model.error.ErrorCode;
+import co.com.bootcamp.model.exception.InvalidFormatParamException;
+import co.com.bootcamp.model.page.BootcampPageCommand;
+import co.com.bootcamp.model.page.SortDirection;
 import co.com.bootcamp.usecase.bootcamp.BootcampUseCase;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -41,5 +46,47 @@ public class BootcampHandler {
                       .contentType(MediaType.APPLICATION_JSON)
                       .bodyValue(response));
             })));
+  }
+
+  public Mono<ServerResponse> findAll(ServerRequest serverRequest) {
+    log.info("Request received for bootcamp list: path={}, method={}",
+        serverRequest.path(),
+        serverRequest.method()
+    );
+    return Mono
+        .defer(() -> {
+          try {
+            String sortByParam = serverRequest
+                .queryParam("sortBy")
+                .orElse("name");
+            String directionParam = serverRequest
+                .queryParam("sortDirection")
+                .orElse("ASC");
+            int page = Integer.parseInt(serverRequest
+                .queryParam("page")
+                .orElse("0"));
+            int size = Integer.parseInt(serverRequest
+                .queryParam("size")
+                .orElse("10"));
+
+            BootcampPageCommand command = BootcampPageCommand
+                .builder()
+                .page(page)
+                .size(size)
+                .sortBy(BootcampSortBy.getSortBy(sortByParam))
+                .sortDirection(SortDirection.getSortBy(directionParam))
+                .build();
+
+            return useCase.getBootcampResponses(command);
+
+          } catch (IllegalArgumentException ex) {
+            log.error("Invalid parameter format", ex);
+            return Mono.error(new InvalidFormatParamException(ErrorCode.INVALID_PARAMETERS));
+          }
+        })
+        .flatMap(pageResponse -> ServerResponse
+            .ok()
+            .contentType(MediaType.APPLICATION_JSON)
+            .bodyValue(pageResponse));
   }
 }
