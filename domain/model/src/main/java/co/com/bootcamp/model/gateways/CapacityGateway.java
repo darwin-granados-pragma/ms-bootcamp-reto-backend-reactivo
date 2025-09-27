@@ -12,4 +12,6 @@ public interface CapacityGateway {
   Mono<Void> validateCapacities(Set<String> capacities);
 
   Flux<CapacityResponse> getCapacitiesByIdBootcamp(String idBootcamp);
+
+  Mono<Void> deleteRelationsBootcampCapacities(String idBootcamp);
 }

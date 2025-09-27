@@ -146,4 +146,21 @@ class BootcampUseCaseTest {
         .expectNext(expectedResponse)
         .verifyComplete();
   }
+
+  @Test
+  void shouldDeleteBootcampAndRelationsWithCapacitiesSuccessfully() {
+    // Arrange
+    String idBootcamp = "test boot id";
+    when(capacityGateway.deleteRelationsBootcampCapacities(idBootcamp)).thenReturn(Mono.empty());
+    when(repository.deleteById(idBootcamp)).thenReturn(Mono.empty());
+    when(transactionalGateway.execute(ArgumentMatchers.<Mono<?>>any())).thenAnswer(invocation -> invocation.getArgument(0));
+
+    // Act
+    var result = useCase.deleteBootcampAndRelationsWithCapacities(idBootcamp);
+
+    // Assert
+    StepVerifier
+        .create(result)
+        .verifyComplete();
+  }
 }

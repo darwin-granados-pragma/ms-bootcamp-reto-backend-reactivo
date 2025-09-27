@@ -43,6 +43,13 @@ public class BootcampUseCase {
     });
   }
 
+  public Mono<Void> deleteBootcampAndRelationsWithCapacities(String idBootcamp) {
+    return repository
+        .deleteById(idBootcamp)
+        .then(Mono.defer(() -> capacityGateway.deleteRelationsBootcampCapacities(idBootcamp)))
+        .as(transactionalGateway::execute);
+  }
+
   private Mono<Void> validateCapacitiesSize(Set<String> capacities) {
     if (capacities.isEmpty() || capacities.size() > 4) {
       return Mono.error(new BusinessException(ErrorCode.BOOTCAMP_CAPACITY_SIZE));

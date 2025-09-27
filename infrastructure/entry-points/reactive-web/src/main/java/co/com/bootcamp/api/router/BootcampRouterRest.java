@@ -1,5 +1,6 @@
 package co.com.bootcamp.api.router;
 
+import static org.springframework.web.reactive.function.server.RequestPredicates.DELETE;
 import static org.springframework.web.reactive.function.server.RequestPredicates.GET;
 import static org.springframework.web.reactive.function.server.RequestPredicates.POST;
 import static org.springframework.web.reactive.function.server.RouterFunctions.route;
@@ -31,6 +32,7 @@ import org.springframework.web.reactive.function.server.ServerResponse;
 public class BootcampRouterRest {
 
   private static final String PATH = "/api/v1/bootcamp";
+  private static final String PATH_DELETE = PATH + "/{idBootcamp}";
 
   private final BootcampHandler bootcampHandler;
   private final GlobalErrorWebFilter globalErrorWebFilter;
@@ -91,11 +93,27 @@ public class BootcampRouterRest {
               )
           )}
       )
+  ), @RouterOperation(method = RequestMethod.DELETE,
+      path = PATH_DELETE,
+      beanClass = BootcampHandler.class,
+      beanMethod = "deleteBootcamp",
+      operation = @Operation(operationId = "deleteBootcamp",
+          summary = "Eliminar bootcamp por id",
+          description = "Recibe el identificador, elimina el bootcamp con las capacidades asociadas",
+          parameters = {@Parameter(in = ParameterIn.PATH,
+              description = "Identificador del bootcamp",
+              schema = @Schema(type = "String")
+          )},
+          responses = {@ApiResponse(responseCode = "204",
+              description = "Bootcamp y capacidades asociadas eliminadas correctamente"
+          )}
+      )
   )}
   )
   public RouterFunction<ServerResponse> routerFunction() {
     return route(POST(PATH), bootcampHandler::createBootcamp)
         .andRoute(GET(PATH), bootcampHandler::findAll)
+        .andRoute(DELETE(PATH_DELETE), bootcampHandler::deleteBootcamp)
         .filter(globalErrorWebFilter);
   }
 }
