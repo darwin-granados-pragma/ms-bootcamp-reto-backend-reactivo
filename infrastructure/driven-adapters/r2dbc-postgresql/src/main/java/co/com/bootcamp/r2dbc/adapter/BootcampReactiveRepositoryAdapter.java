@@ -55,4 +55,10 @@ public class BootcampReactiveRepositoryAdapter extends
     log.info("Getting total elements of the bootcamp");
     return super.repository.count();
   }
+
+  @Override
+  public Mono<Void> deleteById(String id) {
+    log.info("Deleting bootcamp by id: {}", id);
+    return super.repository.deleteById(id);
+  }
 }

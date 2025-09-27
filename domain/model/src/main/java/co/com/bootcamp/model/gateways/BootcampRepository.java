@@ -12,4 +12,6 @@ public interface BootcampRepository {
   Flux<Bootcamp> findAllOrderByName(BootcampPageCommand command);
 
   Mono<Long> getTotalCount();
+
+  Mono<Void> deleteById(String id);
 }

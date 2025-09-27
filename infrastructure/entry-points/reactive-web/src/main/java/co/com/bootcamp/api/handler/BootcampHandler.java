@@ -89,4 +89,19 @@ public class BootcampHandler {
             .contentType(MediaType.APPLICATION_JSON)
             .bodyValue(pageResponse));
   }
+
+  public Mono<ServerResponse> deleteBootcamp(ServerRequest serverRequest) {
+    log.info("Received request to delete a bootcamp at path={} method={}",
+        serverRequest.path(),
+        serverRequest.method()
+    );
+    return Mono.defer(() -> {
+      String idBootcamp = serverRequest.pathVariable("idBootcamp");
+      return useCase
+          .deleteBootcampAndRelationsWithCapacities(idBootcamp)
+          .then(ServerResponse
+              .noContent()
+              .build());
+    });
+  }
 }
