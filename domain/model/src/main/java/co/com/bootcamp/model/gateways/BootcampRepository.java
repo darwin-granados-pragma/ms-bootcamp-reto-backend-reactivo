@@ -14,4 +14,6 @@ public interface BootcampRepository {
   Mono<Long> getTotalCount();
 
   Mono<Void> deleteById(String id);
+
+  Mono<Bootcamp> findById(String id);
 }

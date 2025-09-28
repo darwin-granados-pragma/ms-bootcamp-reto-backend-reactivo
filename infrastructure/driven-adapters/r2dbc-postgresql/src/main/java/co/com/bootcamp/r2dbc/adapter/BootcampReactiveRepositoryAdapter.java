@@ -61,4 +61,12 @@ public class BootcampReactiveRepositoryAdapter extends
     log.info("Deleting bootcamp by id: {}", id);
     return super.repository.deleteById(id);
   }
+
+  @Override
+  public Mono<Bootcamp> findById(String id) {
+    log.info("Retrieving bootcamps details by id: {}", id);
+    return super.repository
+        .findById(id)
+        .map(this::toEntity);
+  }
 }
