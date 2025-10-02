@@ -9,8 +9,10 @@ import co.com.bootcamp.model.exception.InvalidFormatParamException;
 import co.com.bootcamp.model.page.BootcampPageCommand;
 import co.com.bootcamp.model.page.SortDirection;
 import co.com.bootcamp.usecase.bootcamp.BootcampUseCase;
+import java.util.Set;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Component;
@@ -103,5 +105,22 @@ public class BootcampHandler {
               .noContent()
               .build());
     });
+  }
+
+  public Mono<ServerResponse> findByIdsBootcamps(ServerRequest serverRequest) {
+    log.info("Request received to get the list of bootcamps by id: path={}, method={}",
+        serverRequest.path(),
+        serverRequest.method()
+    );
+    return serverRequest
+        .bodyToMono(new ParameterizedTypeReference<Set<String>>() {
+        })
+        .flatMap(idsBootcamps -> useCase
+            .findByIdsBootcamps(idsBootcamps)
+            .map(mapper::toBootcampResponse)
+            .collectList())
+        .flatMap(bootcampResponses -> ServerResponse
+            .ok()
+            .bodyValue(bootcampResponses));
   }
 }

@@ -1,6 +1,7 @@
 package co.com.bootcamp.usecase.bootcamp;
 
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -10,6 +11,7 @@ import co.com.bootcamp.model.bootcamp.BootcampCreate;
 import co.com.bootcamp.model.bootcamp.BootcampResponse;
 import co.com.bootcamp.model.bootcamp.BootcampSortBy;
 import co.com.bootcamp.model.exception.BusinessException;
+import co.com.bootcamp.model.exception.ObjectNotFoundException;
 import co.com.bootcamp.model.gateways.BootcampRepository;
 import co.com.bootcamp.model.gateways.CapacityGateway;
 import co.com.bootcamp.model.gateways.TransactionalGateway;
@@ -36,6 +38,14 @@ import reactor.test.StepVerifier;
 class BootcampUseCaseTest {
 
 
+  private final String id1 = "id1";
+  private final String id2 = "id2";
+  private final Set<String> bootcamps = Set.of(id1, id2);
+  private final Bootcamp bootcamp1 = Bootcamp
+      .builder()
+      .id(id1)
+      .build();
+
   @Mock
   private BootcampRepository repository;
   @Mock
@@ -46,15 +56,13 @@ class BootcampUseCaseTest {
   private BootcampFactoryUseCase factoryUseCase;
   @Mock
   private BootcampRetrieveStrategy mockStrategy;
-
   private Set<String> capacities;
   private BootcampCreate createData;
-
   @InjectMocks
   private BootcampUseCase useCase;
 
   private static Stream<Set<String>> provideInvalidCapacitySizes() {
-    return Stream.of(Collections.emptySet(), Set.of("c1", "c2", "c3", "c4", "c5"));
+    return Stream.of(Collections.emptySet(), java.util.Set.of("c1", "c2", "c3", "c4", "c5"));
   }
 
   @BeforeEach
@@ -153,7 +161,8 @@ class BootcampUseCaseTest {
     String idBootcamp = "test boot id";
     when(capacityGateway.deleteRelationsBootcampCapacities(idBootcamp)).thenReturn(Mono.empty());
     when(repository.deleteById(idBootcamp)).thenReturn(Mono.empty());
-    when(transactionalGateway.execute(ArgumentMatchers.<Mono<?>>any())).thenAnswer(invocation -> invocation.getArgument(0));
+    when(transactionalGateway.execute(ArgumentMatchers.<Mono<?>>any())).thenAnswer(invocation -> invocation.getArgument(
+        0));
 
     // Act
     var result = useCase.deleteBootcampAndRelationsWithCapacities(idBootcamp);
@@ -162,5 +171,46 @@ class BootcampUseCaseTest {
     StepVerifier
         .create(result)
         .verifyComplete();
+  }
+
+  @Test
+  void shouldReturnFluxOfBootcamps_WhenAllIdsExist() {
+    // Arrange
+    var bootcamp2 = Bootcamp
+        .builder()
+        .id(id2)
+        .build();
+
+    lenient().when(repository.findById(id1)).thenReturn(Mono.just(bootcamp1));
+    when(repository.findById(id2)).thenReturn(Mono.just(bootcamp2));
+
+    // Act
+    var result = useCase.findByIdsBootcamps(bootcamps);
+
+    // Assert
+    StepVerifier
+        .create(result)
+        .expectNext(bootcamp1, bootcamp2)
+        .verifyComplete();
+  }
+
+  @Test
+  void findByIdsBootcamps_ShouldReturnError_WhenOneIdIsNotFound() {
+    // Arrange
+
+    lenient()
+        .when(repository.findById(id1))
+        .thenReturn(Mono.just(bootcamp1));
+    when(repository.findById(id2)).thenReturn(Mono.empty());
+
+    // Act
+    var result = useCase.findByIdsBootcamps(bootcamps);
+
+    // Assert
+    StepVerifier
+        .create(result)
+        .expectNext(bootcamp1)
+        .expectError(ObjectNotFoundException.class)
+        .verify();
   }
 }

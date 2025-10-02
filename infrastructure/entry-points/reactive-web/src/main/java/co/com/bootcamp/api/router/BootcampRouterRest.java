@@ -14,6 +14,7 @@ import co.com.bootcamp.model.page.PageResponse;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.enums.ParameterIn;
+import io.swagger.v3.oas.annotations.media.ArraySchema;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.parameters.RequestBody;
@@ -33,6 +34,7 @@ public class BootcampRouterRest {
 
   private static final String PATH = "/api/v1/bootcamp";
   private static final String PATH_DELETE = PATH + "/{idBootcamp}";
+  private static final String PATH_BOOTCAMPS = PATH + "/all";
 
   private final BootcampHandler bootcampHandler;
   private final GlobalErrorWebFilter globalErrorWebFilter;
@@ -108,12 +110,39 @@ public class BootcampRouterRest {
               description = "Bootcamp y capacidades asociadas eliminadas correctamente"
           )}
       )
+  ), @RouterOperation(method = RequestMethod.POST,
+      path = PATH_BOOTCAMPS,
+      beanClass = BootcampHandler.class,
+      beanMethod = "findByIdsBootcamps",
+      operation = @Operation(operationId = "findByIdsBootcamps",
+          summary = "Recuperar la información de cada bootcamp",
+          description = "Recibe lista de identificadores de los bootcamps y devuelve la información de cada uno",
+          requestBody = @RequestBody(required = true,
+              content = @Content(mediaType = "application/json",
+                  array = @ArraySchema(schema = @Schema(type = "String", example = "[id1, id2, id3]"
+                  )
+                  )
+              )
+          ),
+          responses = {@ApiResponse(responseCode = "200",
+              description = "Información de cada bootcamp recuperada",
+              content = @Content(mediaType = "application/json",
+                  schema = @Schema(implementation = PageResponse.class)
+              )
+          ), @ApiResponse(responseCode = "404",
+              description = "Bootcamp no encontrado",
+              content = @Content(mediaType = "application/json",
+                  schema = @Schema(implementation = ErrorResponse.class)
+              )
+          )}
+      )
   )}
   )
   public RouterFunction<ServerResponse> routerFunction() {
     return route(POST(PATH), bootcampHandler::createBootcamp)
         .andRoute(GET(PATH), bootcampHandler::findAll)
         .andRoute(DELETE(PATH_DELETE), bootcampHandler::deleteBootcamp)
+        .andRoute(POST(PATH_BOOTCAMPS), bootcampHandler::findByIdsBootcamps)
         .filter(globalErrorWebFilter);
   }
 }

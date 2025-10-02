@@ -6,6 +6,7 @@ import co.com.bootcamp.model.bootcamp.BootcampResponse;
 import co.com.bootcamp.model.bootcamp.BootcampSortBy;
 import co.com.bootcamp.model.error.ErrorCode;
 import co.com.bootcamp.model.exception.BusinessException;
+import co.com.bootcamp.model.exception.ObjectNotFoundException;
 import co.com.bootcamp.model.gateways.BootcampRepository;
 import co.com.bootcamp.model.gateways.CapacityGateway;
 import co.com.bootcamp.model.gateways.TransactionalGateway;
@@ -15,6 +16,7 @@ import co.com.bootcamp.model.page.PageResponse;
 import java.util.Set;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
+import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 @RequiredArgsConstructor
@@ -50,6 +52,12 @@ public class BootcampUseCase {
         .as(transactionalGateway::execute);
   }
 
+  public Flux<Bootcamp> findByIdsBootcamps(Set<String> bootcamps) {
+    return Flux
+        .fromIterable(bootcamps)
+        .flatMap(this::findByIdBootcamp);
+  }
+
   private Mono<Void> validateCapacitiesSize(Set<String> capacities) {
     if (capacities.isEmpty() || capacities.size() > 4) {
       return Mono.error(new BusinessException(ErrorCode.BOOTCAMP_CAPACITY_SIZE));
@@ -75,5 +83,11 @@ public class BootcampUseCase {
             .isNew(true)
             .build())
         .flatMap(repository::save);
+  }
+
+  private Mono<Bootcamp> findByIdBootcamp(String id) {
+    return repository
+        .findById(id)
+        .switchIfEmpty(Mono.error(new ObjectNotFoundException(ErrorCode.BOOTCAMP_NOT_FOUND, id)));
   }
 }

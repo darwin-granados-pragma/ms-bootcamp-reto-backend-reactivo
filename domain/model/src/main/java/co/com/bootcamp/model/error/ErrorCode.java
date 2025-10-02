@@ -7,6 +7,10 @@ import lombok.Getter;
 @AllArgsConstructor
 public enum ErrorCode {
 
+  BOOTCAMP_NOT_FOUND("BOOTCAMP-NOT-FOUND",
+      ExceptionCode.NOT_FOUND,
+      "No se encontró el bootcamp con id: "
+  ),
   BOOTCAMP_CAPACITY_SIZE("BOOTCAMP-CAPACITY-SIZE",
       ExceptionCode.INVALID_INPUT,
       "Un bootcamp debe tener entre 1 y 4 capacidades"
