@@ -1,7 +1,6 @@
-package co.com.bootcamp.consumer;
+package co.com.bootcamp.model.report;
 
-import co.com.bootcamp.consumer.model.TechnologyRestResponse;
-import java.util.List;
+import java.time.LocalDate;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -13,9 +12,11 @@ import lombok.Setter;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder(toBuilder = true)
-public class CapacityRestResponse {
+public class Report {
 
-  private String id;
+  private String idBootcamp;
   private String name;
-  private List<TechnologyRestResponse> technologies;
+  private String description;
+  private LocalDate releaseDate;
+  private Integer duration;
 }

@@ -9,25 +9,26 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.web.reactive.function.client.WebClient;
 
 @Configuration
-public class RestConsumerConfig {
+public class ReportRestConsumerConfig {
 
   private final String url;
 
   private final int timeout;
 
-  public RestConsumerConfig(@Value("${adapter.capacity.restconsumer.url}") String url,
-      @Value("${adapter.capacity.restconsumer.timeout}") int timeout) {
+  public ReportRestConsumerConfig(@Value("${adapter.report.restconsumer.url}") String url,
+      @Value("${adapter.report.restconsumer.timeout}") int timeout) {
     this.url = url;
     this.timeout = timeout;
   }
 
-  @Bean("capacityWebClient")
-  public WebClient getWebClient(WebClient.Builder builder) {
+  @Bean("reportWebClient")
+  public WebClient getReportWebClient(WebClient.Builder builder) {
     return builder
         .baseUrl(url)
         .defaultHeader(HttpHeaders.CONTENT_TYPE, "application/json")
         .clientConnector(getClientHttpConnector(timeout))
         .build();
   }
+
 
 }

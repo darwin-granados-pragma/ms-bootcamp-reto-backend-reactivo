@@ -1,6 +1,8 @@
-package co.com.bootcamp.consumer;
+package co.com.bootcamp.consumer.rest;
 
 import co.com.bootcamp.consumer.mapper.CapacityMapper;
+import co.com.bootcamp.consumer.model.CapacityRestResponse;
+import co.com.bootcamp.consumer.model.ErrorResponse;
 import co.com.bootcamp.model.capacity.CapacityResponse;
 import co.com.bootcamp.model.error.ErrorCode;
 import co.com.bootcamp.model.exception.BusinessException;
@@ -8,8 +10,8 @@ import co.com.bootcamp.model.exception.CapacityAssignmentException;
 import co.com.bootcamp.model.exception.InvalidCapacityException;
 import co.com.bootcamp.model.gateways.CapacityGateway;
 import java.util.Set;
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
@@ -19,11 +21,16 @@ import reactor.core.publisher.Mono;
 
 @Slf4j
 @Service
-@RequiredArgsConstructor
 public class RestConsumer implements CapacityGateway {
 
   private final WebClient client;
   private final CapacityMapper capacityMapper;
+
+  public RestConsumer(@Qualifier("capacityWebClient") WebClient client,
+      CapacityMapper capacityMapper) {
+    this.client = client;
+    this.capacityMapper = capacityMapper;
+  }
 
   @Override
   public Mono<Void> assignCapacitiesToBootcamp(String idBootcamp, Set<String> capacities) {

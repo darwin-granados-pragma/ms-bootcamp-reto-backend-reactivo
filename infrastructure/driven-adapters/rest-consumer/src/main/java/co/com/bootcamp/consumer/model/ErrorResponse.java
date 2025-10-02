@@ -1,4 +1,4 @@
-package co.com.bootcamp.consumer;
+package co.com.bootcamp.consumer.model;
 
 public record ErrorResponse(String error) {
 
