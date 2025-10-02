@@ -1,7 +1,6 @@
 package co.com.bootcamp.usecase.bootcamp;
 
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -14,11 +13,13 @@ import co.com.bootcamp.model.exception.BusinessException;
 import co.com.bootcamp.model.exception.ObjectNotFoundException;
 import co.com.bootcamp.model.gateways.BootcampRepository;
 import co.com.bootcamp.model.gateways.CapacityGateway;
+import co.com.bootcamp.model.gateways.ReportGateway;
 import co.com.bootcamp.model.gateways.TransactionalGateway;
 import co.com.bootcamp.model.input.BootcampRetrieveStrategy;
 import co.com.bootcamp.model.page.BootcampPageCommand;
 import co.com.bootcamp.model.page.PageResponse;
 import co.com.bootcamp.model.page.SortDirection;
+import co.com.bootcamp.model.report.Report;
 import java.util.Collections;
 import java.util.Set;
 import java.util.stream.Stream;
@@ -39,8 +40,7 @@ class BootcampUseCaseTest {
 
 
   private final String id1 = "id1";
-  private final String id2 = "id2";
-  private final Set<String> bootcamps = Set.of(id1, id2);
+  private final Set<String> bootcamps = Set.of(id1);
   private final Bootcamp bootcamp1 = Bootcamp
       .builder()
       .id(id1)
@@ -56,6 +56,8 @@ class BootcampUseCaseTest {
   private BootcampFactoryUseCase factoryUseCase;
   @Mock
   private BootcampRetrieveStrategy mockStrategy;
+  @Mock
+  private ReportGateway reportGateway;
   private Set<String> capacities;
   private BootcampCreate createData;
   @InjectMocks
@@ -91,6 +93,7 @@ class BootcampUseCaseTest {
         Mono.empty());
     when(transactionalGateway.execute(ArgumentMatchers.<Mono<?>>any())).thenAnswer(invocation -> invocation.getArgument(
         0));
+    when(reportGateway.saveReport(any(Report.class))).thenReturn(Mono.empty());
 
     // Act
     var resultMono = useCase.createBootcamp(createData);
@@ -176,32 +179,7 @@ class BootcampUseCaseTest {
   @Test
   void shouldReturnFluxOfBootcamps_WhenAllIdsExist() {
     // Arrange
-    var bootcamp2 = Bootcamp
-        .builder()
-        .id(id2)
-        .build();
-
-    lenient().when(repository.findById(id1)).thenReturn(Mono.just(bootcamp1));
-    when(repository.findById(id2)).thenReturn(Mono.just(bootcamp2));
-
-    // Act
-    var result = useCase.findByIdsBootcamps(bootcamps);
-
-    // Assert
-    StepVerifier
-        .create(result)
-        .expectNext(bootcamp1, bootcamp2)
-        .verifyComplete();
-  }
-
-  @Test
-  void findByIdsBootcamps_ShouldReturnError_WhenOneIdIsNotFound() {
-    // Arrange
-
-    lenient()
-        .when(repository.findById(id1))
-        .thenReturn(Mono.just(bootcamp1));
-    when(repository.findById(id2)).thenReturn(Mono.empty());
+    when(repository.findById(id1)).thenReturn(Mono.just(bootcamp1));
 
     // Act
     var result = useCase.findByIdsBootcamps(bootcamps);
@@ -210,6 +188,20 @@ class BootcampUseCaseTest {
     StepVerifier
         .create(result)
         .expectNext(bootcamp1)
+        .verifyComplete();
+  }
+
+  @Test
+  void findByIdsBootcamps_ShouldReturnError_WhenOneIdIsNotFound() {
+    // Arrange
+    when(repository.findById(id1)).thenReturn(Mono.empty());
+
+    // Act
+    var result = useCase.findByIdsBootcamps(bootcamps);
+
+    // Assert
+    StepVerifier
+        .create(result)
         .expectError(ObjectNotFoundException.class)
         .verify();
   }

@@ -9,10 +9,12 @@ import co.com.bootcamp.model.exception.BusinessException;
 import co.com.bootcamp.model.exception.ObjectNotFoundException;
 import co.com.bootcamp.model.gateways.BootcampRepository;
 import co.com.bootcamp.model.gateways.CapacityGateway;
+import co.com.bootcamp.model.gateways.ReportGateway;
 import co.com.bootcamp.model.gateways.TransactionalGateway;
 import co.com.bootcamp.model.input.BootcampRetrieveStrategy;
 import co.com.bootcamp.model.page.BootcampPageCommand;
 import co.com.bootcamp.model.page.PageResponse;
+import co.com.bootcamp.model.report.Report;
 import java.util.Set;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
@@ -26,6 +28,7 @@ public class BootcampUseCase {
   private final CapacityGateway capacityGateway;
   private final TransactionalGateway transactionalGateway;
   private final BootcampFactoryUseCase factoryUseCase;
+  private final ReportGateway reportGateway;
 
   public Mono<Bootcamp> createBootcamp(BootcampCreate data) {
     return validateCapacitiesSize(data.getIdCapacities())
@@ -34,7 +37,18 @@ public class BootcampUseCase {
         .flatMap(bootcamp -> capacityGateway
             .assignCapacitiesToBootcamp(bootcamp.getId(), data.getIdCapacities())
             .thenReturn(bootcamp))
-        .as(transactionalGateway::execute);
+        .as(transactionalGateway::execute)
+        .doOnSuccess(bootcamp -> Mono
+            .fromCallable(() -> Report
+                .builder()
+                .idBootcamp(bootcamp.getId())
+                .name(bootcamp.getName())
+                .description(bootcamp.getDescription())
+                .releaseDate(bootcamp.getReleaseDate())
+                .duration(bootcamp.getDuration())
+                .build())
+            .flatMap(reportGateway::saveReport)
+            .subscribe());
   }
 
   public Mono<PageResponse<BootcampResponse>> getBootcampResponses(BootcampPageCommand command) {

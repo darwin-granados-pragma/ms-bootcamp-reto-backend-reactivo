@@ -30,6 +30,10 @@ public enum ErrorCode {
       ExceptionCode.UNEXPECTED_ERROR,
       "No fue posible eliminar las capacidades relacionadas al bootcamp"
   ),
+  CANNOT_POSIBLE_SAVE_REPORT("CANNOT-POSIBLE-SAVE-REPORT",
+      ExceptionCode.UNEXPECTED_ERROR,
+      "No fue posible guardar el reporte del bootcamp"
+  ),
   ;
 
   private final String fullErrorCode;
