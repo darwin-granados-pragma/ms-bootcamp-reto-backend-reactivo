@@ -12,6 +12,7 @@ public class ExceptionCodeMap {
       case INVALID_INPUT -> HttpStatus.BAD_REQUEST;
       case NOT_FOUND -> HttpStatus.NOT_FOUND;
       case UNEXPECTED_ERROR -> HttpStatus.INTERNAL_SERVER_ERROR;
+      case SERVICE_UNAVAILABLE -> HttpStatus.SERVICE_UNAVAILABLE;
     };
   }
 }

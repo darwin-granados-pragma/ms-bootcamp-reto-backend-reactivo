@@ -34,6 +34,10 @@ public enum ErrorCode {
       ExceptionCode.UNEXPECTED_ERROR,
       "No fue posible guardar el reporte del bootcamp"
   ),
+  CAPACITY_SERVICE_UNAVAILABLE("CAPACITY-SERVICE-UNAVAILABLE",
+      ExceptionCode.SERVICE_UNAVAILABLE,
+      "El servicio de capacidades no está disponible"
+  ),
   ;
 
   private final String fullErrorCode;

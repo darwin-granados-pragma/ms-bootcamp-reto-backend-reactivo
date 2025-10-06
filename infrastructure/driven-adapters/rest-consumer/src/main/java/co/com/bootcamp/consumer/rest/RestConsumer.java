@@ -9,6 +9,7 @@ import co.com.bootcamp.model.exception.BusinessException;
 import co.com.bootcamp.model.exception.CapacityAssignmentException;
 import co.com.bootcamp.model.exception.InvalidCapacityException;
 import co.com.bootcamp.model.gateways.CapacityGateway;
+import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
 import java.util.Set;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -67,6 +68,9 @@ public class RestConsumer implements CapacityGateway {
   }
 
   @Override
+  @CircuitBreaker(name = "capacityServiceCircuitBreaker",
+      fallbackMethod = "getCapacitiesByIdBootcampFallback"
+  )
   public Flux<CapacityResponse> getCapacitiesByIdBootcamp(String idBootcamp) {
     return client
         .get()
@@ -95,5 +99,15 @@ public class RestConsumer implements CapacityGateway {
               return Mono.error(new BusinessException(ErrorCode.CANNOT_POSIBLE_DELETE_CAPACITY_RELATIONS));
             }
         );
+  }
+
+  public Flux<CapacityResponse> getCapacitiesByIdBootcampFallback(String idBootcamp,
+      Throwable throwable) {
+    log.error(
+        "Circuit breaker activated for getCapacitiesByIdBootcamp with idBootcamp={}. Reason: {}",
+        idBootcamp,
+        throwable.getMessage()
+    );
+    return Flux.error(new BusinessException(ErrorCode.CAPACITY_SERVICE_UNAVAILABLE));
   }
 }
